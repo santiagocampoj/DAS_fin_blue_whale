@@ -1,0 +1,1 @@
+DAS_FOLDER = r"C:\Users\Santi\OneDrive - UPV\TFM - Santiago Campo Jurado\DAS"
