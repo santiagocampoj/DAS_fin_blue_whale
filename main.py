@@ -14,7 +14,6 @@ def main() -> None:
     current_directory = os.getcwd()
     logger.info(f"Current working directory: {current_directory}")
 
-    print("DAS_FOLDER:", DAS_FOLDER)
 
     #with walk
     for dirpath, dirnames, filenames in os.walk(DAS_FOLDER):
