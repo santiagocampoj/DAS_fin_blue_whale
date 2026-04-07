@@ -1,4 +1,4 @@
-from config import DAS_FOLDER, DAS_FOLDER_BACKUP, SUFFIX, BBOX_SUFIX
+from config import DAS_FOLDER, DAS_D4W_FOLDER_BACKUP, SUFFIX, BBOX_SUFIX
 from logging_config import setup_logging
 from points_to_bbox import points_to_bbox
 from rename_csv_h5 import rename_annot_h5
@@ -16,15 +16,15 @@ def main() -> None:
     current_directory = os.getcwd()
     logger.info(f"Current working directory: {current_directory}")
 
-    if DAS_FOLDER_BACKUP is None or not os.path.exists(DAS_FOLDER_BACKUP):
-        logger.error(f"DAS_FOLDER_BACKUP is not set or does not exist: {DAS_FOLDER_BACKUP}")
+    if DAS_D4W_FOLDER_BACKUP is None or not os.path.exists(DAS_D4W_FOLDER_BACKUP):
+        logger.error(f"DAS_D4W_FOLDER_BACKUP is not set or does not exist: {DAS_D4W_FOLDER_BACKUP}")
         return
 
 
 
     logger.info("")
-    logger.info(f"Walking through directory: {DAS_FOLDER_BACKUP}")
-    for dirpath, dirnames, filenames in os.walk(DAS_FOLDER_BACKUP):
+    logger.info(f"Walking through directory: {DAS_D4W_FOLDER_BACKUP}")
+    for dirpath, dirnames, filenames in os.walk(DAS_D4W_FOLDER_BACKUP):
         logger.info(f"Directory: {dirpath}")
         logger.info(f"Subdirectories: {dirnames}")
         logger.info(f"Files: {filenames}")
