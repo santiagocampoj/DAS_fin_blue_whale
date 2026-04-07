@@ -9,7 +9,7 @@ var COLORS = [
   '#00d4aa'    // most (bright accent)
 ];
 
-var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 
 // ── HELPERS ──────────────────────────────────────
@@ -39,7 +39,7 @@ function generateData() {
 
     var val = Math.random() < 0.15
       ? Math.floor(Math.random() * 18 * seasonal)  // occasional busy day
-      : Math.floor(Math.random() * 6  * seasonal);
+      : Math.floor(Math.random() * 6 * seasonal);
 
     days.push({ date: new Date(d), val: val });
   }
@@ -52,7 +52,7 @@ function generateData() {
 
 // Builds the 52×7 grid of coloured cells
 function buildWeeks(days) {
-  var max = Math.max.apply(null, days.map(function(d) { return d.val; }));
+  var max = Math.max.apply(null, days.map(function (d) { return d.val; }));
   var startDOW = days[0].date.getDay();  // which weekday does week 1 start on?
   var weeksEl = document.getElementById('hm-weeks');
   weeksEl.innerHTML = '';
@@ -75,8 +75,8 @@ function buildWeeks(days) {
         cell.style.background = cellColor(day.val, max);
 
         // Attach tooltip events — wrapped in IIFE to capture the correct day
-        ;(function(day) {
-          cell.addEventListener('mouseenter', function(e) { showTip(e, day.date, day.val); });
+        ; (function (day) {
+          cell.addEventListener('mouseenter', function (e) { showTip(e, day.date, day.val); });
           cell.addEventListener('mouseleave', hideTip);
         })(day);
       }
@@ -108,7 +108,7 @@ function buildMonthLabels(startDate) {
     d.setDate(d.getDate() + 7);
   }
 
-  segs.forEach(function(s) {
+  segs.forEach(function (s) {
     var el = document.createElement('div');
     el.className = 'hm-month';
     el.style.flex = s.weeks;
@@ -135,10 +135,10 @@ function hideTip() {
 
 function positionTip(e) {
   tip.style.left = (e.clientX + 12) + 'px';
-  tip.style.top  = (e.clientY - 32) + 'px';
+  tip.style.top = (e.clientY - 32) + 'px';
 }
 
-document.addEventListener('mousemove', function(e) {
+document.addEventListener('mousemove', function (e) {
   if (tip.style.display !== 'none') positionTip(e);
 });
 
