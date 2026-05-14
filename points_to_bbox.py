@@ -80,5 +80,5 @@ def points_to_bbox(csv_path, output_path=None, output_name=None, group_col='call
     df_bbox.to_csv(out_file, index=False)
     if logger:
         logger.info(f"Saved bounding box CSV to: {out_file}")
-
+        
     return df_bbox

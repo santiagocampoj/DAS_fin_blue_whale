@@ -1,4 +1,4 @@
-from config import DAS_FOLDER, DAS_D4W_FOLDER_BACKUP, SUFFIX, BBOX_SUFIX
+from config import DAS_FOLDER, DAS_D4W_FOLDER_BACKUP, SUFFIX, BBOX_SUFIX, DAS_H5_FOLDER_BACKUP
 from logging_config import setup_logging
 from points_to_bbox import points_to_bbox
 from rename_csv_h5 import rename_annot_h5
@@ -19,6 +19,13 @@ def main() -> None:
     if DAS_D4W_FOLDER_BACKUP is None or not os.path.exists(DAS_D4W_FOLDER_BACKUP):
         logger.error(f"DAS_D4W_FOLDER_BACKUP is not set or does not exist: {DAS_D4W_FOLDER_BACKUP}")
         return
+    
+    if DAS_H5_FOLDER_BACKUP is None or not os.path.exists(DAS_H5_FOLDER_BACKUP):
+        logger.error(f"DAS_H5_FOLDER_BACKUP is not set or does not exist: {DAS_H5_FOLDER_BACKUP}")
+        return
+    
+    h5_files = [f for f in os.listdir(DAS_H5_FOLDER_BACKUP) if f.endswith('.h5')]
+    logger.info(f"Found {len(h5_files)} .h5 files in {DAS_H5_FOLDER_BACKUP}:")
 
 
 
