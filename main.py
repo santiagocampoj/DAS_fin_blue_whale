@@ -2,51 +2,56 @@ from config import DAS_FOLDER, DAS_D4W_FOLDER_BACKUP, SUFFIX, BBOX_SUFIX, DAS_H5
 from logging_config import setup_logging
 from points_to_bbox import points_to_bbox
 from rename_csv_h5 import rename_annot_h5
+from fix_bbox_shape import fix_bbox_with_h5_metadata
+from plot_bbox import plot_bbox_overlay
 import os
-
-
+from tqdm import tqdm
 
 
 def main() -> None:
     logger = setup_logging()
     logger.info("Starting the application.")
-
-
-    logger.info("")
-    current_directory = os.getcwd()
-    logger.info(f"Current working directory: {current_directory}")
+    logger.info(f"Current working directory: {os.getcwd()}")
 
     if DAS_D4W_FOLDER_BACKUP is None or not os.path.exists(DAS_D4W_FOLDER_BACKUP):
         logger.error(f"DAS_D4W_FOLDER_BACKUP is not set or does not exist: {DAS_D4W_FOLDER_BACKUP}")
         return
-    
+
     if DAS_H5_FOLDER_BACKUP is None or not os.path.exists(DAS_H5_FOLDER_BACKUP):
         logger.error(f"DAS_H5_FOLDER_BACKUP is not set or does not exist: {DAS_H5_FOLDER_BACKUP}")
         return
-    
+
+
+
     h5_files = [f for f in os.listdir(DAS_H5_FOLDER_BACKUP) if f.endswith('.h5')]
-    logger.info(f"Found {len(h5_files)} .h5 files in {DAS_H5_FOLDER_BACKUP}:")
+    logger.info(f"Found {len(h5_files)} .h5 files in {DAS_H5_FOLDER_BACKUP}: {h5_files}")
+    if not h5_files:
+        logger.error("No .h5 files found.")
+        return
 
 
 
-    logger.info("")
+    # Single-file testing phase: just use the first H5 we find.
+    # TODO: when there are multiple H5 files, match each CSV to its H5 by timestamp.
+    h5_path = os.path.join(DAS_H5_FOLDER_BACKUP, h5_files[0])
+    logger.info(f"Using H5 file: {h5_path}")
+
+
+
     logger.info(f"Walking through directory: {DAS_D4W_FOLDER_BACKUP}")
     for dirpath, dirnames, filenames in os.walk(DAS_D4W_FOLDER_BACKUP):
         logger.info(f"Directory: {dirpath}")
-        logger.info(f"Subdirectories: {dirnames}")
-        logger.info(f"Files: {filenames}")
-
-
-
-        for filename in filenames:
+        #adding the tqdm progress bar to the file processing loop
+        for filename in tqdm(filenames, desc=f"Processing files...", unit="file"):
             if filename.endswith('.csv') and 'rename' not in dirpath:
                 csv_path = os.path.join(dirpath, filename)
-                logger.info("")
                 logger.info(f"Processing file: {csv_path}")
 
 
-                # Step 1: new name and output dir
+
+                # Step 1: rename + prep output paths
                 try:
+                    logger.info(f"Renaming {csv_path} to match H5 filename")
                     csv_path_renamed = rename_annot_h5(csv_path, logger=logger)
                     out_dir = os.path.dirname(csv_path_renamed)
                     out_name = os.path.splitext(os.path.basename(csv_path_renamed))[0] + BBOX_SUFIX
@@ -56,12 +61,39 @@ def main() -> None:
 
 
 
-                # Step 2: process original, save with new name into renamed/
+                # Step 2: convert points to bboxes (returns df, also writes CSV)
                 try:
-                    points_to_bbox(csv_path, output_path=out_dir, output_name=out_name, logger=logger)
+                    logger.info(f"Converting points to bbox for {csv_path_renamed}")
+                    df_bbox = points_to_bbox(csv_path, output_path=out_dir,
+                                             output_name=out_name, logger=logger)
                 except Exception as e:
                     logger.error(f"Error processing {csv_path}: {e}")
+                    continue
 
+
+
+                # Step 3: fix nx/nt/ti/di in memory and overwrite the bbox CSV
+                try:
+                    logger.info(f"Fixing bbox shape for {csv_path} using H5 metadata")
+                    bbox_csv_path = os.path.join(out_dir, out_name)
+                    df_bbox = fix_bbox_with_h5_metadata(
+                        df_bbox, h5_path,
+                        output_csv_path=bbox_csv_path,
+                        logger=logger,
+                    )
+                except Exception as e:
+                    logger.error(f"Error fixing bbox shape for {bbox_csv_path}: {e}")
+                    continue
+
+
+
+                # Step 4: plot the bboxes overlaid on the H5 envelope (PNG next to CSV)
+                try:
+                    logger.info(f"Plotting bbox overlay for {bbox_csv_path}")
+                    plot_path = os.path.splitext(bbox_csv_path)[0] + '.png'
+                    plot_bbox_overlay(h5_path, bbox_csv_path, save_path=plot_path, logger=logger)
+                except Exception as e:
+                    logger.error(f"Error plotting {bbox_csv_path}: {e}")
 
 
 

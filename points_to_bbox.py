@@ -77,8 +77,8 @@ def points_to_bbox(csv_path, output_path=None, output_name=None, group_col='call
     out_dir = output_path if output_path else os.path.dirname(csv_path) or '.'
     out_file = os.path.join(out_dir, base_name)
 
-    df_bbox.to_csv(out_file, index=False)
+    # df_bbox.to_csv(out_file, index=False)
     if logger:
         logger.info(f"Saved bounding box CSV to: {out_file}")
-        
+
     return df_bbox
