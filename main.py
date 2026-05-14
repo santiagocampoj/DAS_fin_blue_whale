@@ -4,6 +4,7 @@ from points_to_bbox import points_to_bbox
 from rename_csv_h5 import rename_annot_h5
 from fix_bbox_shape import fix_bbox_with_h5_metadata
 from plot_bbox import plot_bbox_overlay
+from build_rgb_image import h5_to_rgb_png
 import os
 from tqdm import tqdm
 
@@ -94,6 +95,19 @@ def main() -> None:
                     plot_bbox_overlay(h5_path, bbox_csv_path, save_path=plot_path, logger=logger)
                 except Exception as e:
                     logger.error(f"Error plotting {bbox_csv_path}: {e}")
+                
+
+                # Step 5: build the multispectral RGB PNG from the H5 (for YOLO training)
+                try:
+                    logger.info(f"Building RGB image for {h5_path}")
+                    h5_basename = os.path.splitext(os.path.basename(h5_path))[0]
+                    rgb_path = os.path.join(out_dir, h5_basename + '_rgb.png')
+                    h5_to_rgb_png(h5_path, rgb_path, logger=logger)
+                except Exception as e:
+                    logger.error(f"Error building RGB image for {h5_path}: {e}")
+
+
+                exit()
 
 
 
