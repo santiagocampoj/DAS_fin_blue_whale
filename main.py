@@ -9,6 +9,8 @@ import os
 from tqdm import tqdm
 
 
+
+
 def main() -> None:
     logger = setup_logging()
     logger.info("Starting the application.")
@@ -43,7 +45,7 @@ def main() -> None:
     for dirpath, dirnames, filenames in os.walk(DAS_D4W_FOLDER_BACKUP):
         logger.info(f"Directory: {dirpath}")
         #adding the tqdm progress bar to the file processing loop
-        for filename in tqdm(filenames, desc=f"Processing files...", unit="file"):
+        for filename in tqdm(filenames, desc=f"Processing files", unit="file"):
             if filename.endswith('.csv') and 'rename' not in dirpath:
                 csv_path = os.path.join(dirpath, filename)
                 logger.info(f"Processing file: {csv_path}")
@@ -65,8 +67,7 @@ def main() -> None:
                 # Step 2: convert points to bboxes (returns df, also writes CSV)
                 try:
                     logger.info(f"Converting points to bbox for {csv_path_renamed}")
-                    df_bbox = points_to_bbox(csv_path, output_path=out_dir,
-                                             output_name=out_name, logger=logger)
+                    df_bbox = points_to_bbox(csv_path, output_path=out_dir, output_name=out_name, logger=logger)
                 except Exception as e:
                     logger.error(f"Error processing {csv_path}: {e}")
                     continue

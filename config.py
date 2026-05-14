@@ -6,3 +6,5 @@ DAS_H5_FOLDER_BACKUP = r"C:\Users\Santi\OneDrive - UPV\TFM - Santiago Campo Jura
 SUFFIX = "C1-LR-P1kHz-GL50m-Sp2m-FS200Hz"
 
 BBOX_SUFIX = '_bbox.csv'
+
+COLOR = {'HF': 'red', 'LF': 'cyan'}

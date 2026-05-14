@@ -5,8 +5,8 @@ import scipy.signal as sp
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import das4whales as dw
+from config import COLOR
 
-COLOR = {'HF': 'red', 'LF': 'cyan'}
 
 
 def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
@@ -17,6 +17,8 @@ def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
     tr, time, dist, fileBeginTimeUTC = dw.data_handle.load_das_data(
         h5_path, selected_channels, metadata
     )
+
+
 
     # --- Band-pass + f-k filter ---
     sos_bpfilter = dw.dsp.butterworth_filter([5, [15, 25], 'bp'], fs)
@@ -29,11 +31,15 @@ def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
     )
     trf_fk = dw.dsp.fk_filter_sparsefilt(trf, fk_filter, tapering=False)
 
+
+
     # --- Load bbox CSV ---
     df_bbox = pd.read_csv(bbox_csv_path)
     if logger:
         logger.info(f"Loaded {len(df_bbox)} bboxes from {bbox_csv_path}")
         logger.info(df_bbox.head())
+
+
 
     # --- Downsample envelope for display ---
     stride_t, stride_x = 4, 4
@@ -41,6 +47,8 @@ def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
     envelope_ds = envelope[::stride_x, ::stride_t]
     time_ds = time[::stride_t]
     dist_ds = dist[::stride_x]
+
+
 
     # --- Plot ---
     fig, ax = plt.subplots(figsize=(12, 8))
@@ -55,6 +63,8 @@ def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
     ax.set_title(str(fileBeginTimeUTC))
     plt.colorbar(im, ax=ax, label='Strain Envelope (x1e-9)')
 
+
+
     # Overlay bounding boxes
     for _, row in df_bbox.iterrows():
         t0, t1 = row['t0'], row['t1']
@@ -68,6 +78,8 @@ def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
         ax.add_patch(rect)
         ax.text(t0, d1, str(label), color=color, fontsize=7, va='bottom')
 
+
+    # actual plotting
     plt.tight_layout()
     if save_path:
         plt.savefig(save_path, dpi=120, bbox_inches='tight')

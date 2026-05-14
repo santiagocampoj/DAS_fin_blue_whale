@@ -5,22 +5,18 @@ import das4whales as dw
 from PIL import Image
 
 
-def h5_to_rgb_png(h5_path, output_png_path,
-                  bands=((16, 28), (30, 40), (40, 60)),
-                  perc=90, max_size=1024, logger=None):
+def h5_to_rgb_png(h5_path, output_png_path, bands=((16, 28), (30, 40), (40, 60)), perc=90, max_size=1024, logger=None):
     """
-    DAS H5 → 3-band multispectral 8-bit RGB PNG, following Morell-Monzó et al. (2026):
-        1. Load DAS data
-        2. Band-pass filter into K=3 bands (Butterworth, order 5) — one per RGB channel
-        3. Normalize each band:  E_k_norm = clip(|x_k| / P_perc(|x_k|), 0, 1)
-        4. Stack as (H, W, 3) in [0, 1]
-        5. Rescale so the longest axis = max_size pixels (LANCZOS), preserving aspect
-        6. Save as 8-bit PNG
+    3-band multispectral 8-bit RGB PNG
+        Band-pass filter into K=3 bands (Butterworth, order 5) — one per RGB channel
+        Normalize each band:  E_k_norm = clip(|x_k| / P_perc(|x_k|), 0, 1)
+        Stack as (H, W, 3) in [0, 1]
+        Rescale so the longest axis = max_size pixels (LANCZOS), preserving aspect
+        Save as 8-bit PNG
 
-    Default bands match the paper's CNN experiment (B1=16–28, B2=30–40, B3=40–60 Hz),
-    which produced 97.3% accuracy for Fin Whale detection with ResNet-18.
+    Default bands match the paper's CNN experiment (B1=16–28, B2=30–40, B3=40–60 Hz)
     """
-    # 1. Load H5
+
     if logger:
         logger.info(f"Loading H5: {h5_path}")
     md = dw.data_handle.get_acquisition_parameters(h5_path, interrogator='optasense')
@@ -29,13 +25,18 @@ def h5_to_rgb_png(h5_path, output_png_path,
     if logger:
         logger.info(f"  tr.shape={tr.shape}, fs={fs} Hz, dx={dx} m")
 
+    
+    
     # 2. Spectral decomposition: one band-pass filter per RGB channel
     if logger:
         logger.info(f"  decomposing into bands {list(bands)} Hz")
     layers = []
     for b in bands:
+        # Using a 5th-order Butterworth band-pass filter for each band
         sos = dw.dsp.butterworth_filter([5, list(b), 'bp'], fs)
         layers.append(sp.sosfiltfilt(sos, tr, axis=-1))
+
+
 
     # 3. Normalize each band by the perc-th percentile of |x_k|
     if logger:
@@ -47,7 +48,10 @@ def h5_to_rgb_png(h5_path, output_png_path,
             normed.append(np.zeros_like(x, dtype=np.float32))
         else:
             normed.append(np.clip(np.abs(x) / v, 0, 1).astype(np.float32))
-    rgb_float = np.stack(normed, axis=-1)   # shape (nx, ns, 3), values in [0, 1]
+    rgb_float = np.stack(normed, axis=-1)   
+    # shape (nx, ns, 3), values in [0, 1]
+
+
 
     # 4. Rescale so the longest axis = max_size pixels
     h, w, _ = rgb_float.shape
@@ -56,32 +60,16 @@ def h5_to_rgb_png(h5_path, output_png_path,
         new_h = max(1, round(h * scale))
         new_w = max(1, round(w * scale))
         img_u8 = (rgb_float * 255).astype(np.uint8)
-        rgb_u8 = np.array(
-            Image.fromarray(img_u8).resize((new_w, new_h), Image.LANCZOS)
-        )
+        rgb_u8 = np.array(Image.fromarray(img_u8).resize((new_w, new_h), Image.LANCZOS))
         if logger:
             logger.info(f"  rescaled from ({h}, {w}) → ({new_h}, {new_w})")
     else:
         rgb_u8 = (rgb_float * 255).astype(np.uint8)
+
+
 
     # 5. Save as 8-bit RGB PNG
     Image.fromarray(rgb_u8, mode='RGB').save(output_png_path)
     if logger:
         logger.info(f"Saved RGB PNG: {output_png_path}")
     return rgb_u8
-
-
-if __name__ == "__main__":
-    from config import DAS_H5_FOLDER_BACKUP
-    from logging_config import setup_logging
-
-    logger = setup_logging()
-
-    h5_files = [f for f in os.listdir(DAS_H5_FOLDER_BACKUP) if f.endswith('.h5')]
-    if not h5_files:
-        logger.error("No H5 files found.")
-        exit(1)
-
-    h5_path = os.path.join(DAS_H5_FOLDER_BACKUP, h5_files[0])
-    output_png = os.path.splitext(h5_path)[0] + '_rgb.png'
-    h5_to_rgb_png(h5_path, output_png, logger=logger)
