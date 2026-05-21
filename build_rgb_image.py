@@ -6,17 +6,6 @@ from PIL import Image
 
 
 def h5_to_rgb_png(h5_path, output_png_path, bands=((16, 28), (30, 40), (40, 60)), perc=90, max_size=1024, logger=None):
-    """
-    3-band multispectral 8-bit RGB PNG
-        Band-pass filter into K=3 bands (Butterworth, order 5) — one per RGB channel
-        Normalize each band:  E_k_norm = clip(|x_k| / P_perc(|x_k|), 0, 1)
-        Stack as (H, W, 3) in [0, 1]
-        Rescale so the longest axis = max_size pixels (LANCZOS), preserving aspect
-        Save as 8-bit PNG
-
-    Default bands match the paper's CNN experiment (B1=16–28, B2=30–40, B3=40–60 Hz)
-    """
-
     if logger:
         logger.info(f"Loading H5: {h5_path}")
     md = dw.data_handle.get_acquisition_parameters(h5_path, interrogator='optasense')

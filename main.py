@@ -98,6 +98,7 @@ def main() -> None:
                     logger.error(f"Error plotting {bbox_csv_path}: {e}")
                 
 
+
                 # Step 5: build the multispectral RGB PNG from the H5 (for YOLO training)
                 try:
                     logger.info(f"Building RGB image for {h5_path}")

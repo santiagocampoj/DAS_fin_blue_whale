@@ -10,7 +10,6 @@ from config import COLOR
 
 
 def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
-    # --- Load H5 ---
     metadata = dw.data_handle.get_acquisition_parameters(h5_path, interrogator='optasense')
     fs, dx, nx = metadata['fs'], metadata['dx'], int(metadata['nx'])
     selected_channels = [0, int(nx*dx // dx), 1]
@@ -20,7 +19,7 @@ def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
 
 
 
-    # --- Band-pass + f-k filter ---
+    # band-pass + f-k filter
     sos_bpfilter = dw.dsp.butterworth_filter([5, [15, 25], 'bp'], fs)
     trf = sp.sosfiltfilt(sos_bpfilter, tr, axis=1)
 
@@ -33,7 +32,7 @@ def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
 
 
 
-    # --- Load bbox CSV ---
+    # bbox csv
     df_bbox = pd.read_csv(bbox_csv_path)
     if logger:
         logger.info(f"Loaded {len(df_bbox)} bboxes from {bbox_csv_path}")
@@ -41,7 +40,7 @@ def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
 
 
 
-    # --- Downsample envelope for display ---
+    # downsample envelope
     stride_t, stride_x = 4, 4
     envelope = np.abs(sp.hilbert(trf_fk, axis=1))
     envelope_ds = envelope[::stride_x, ::stride_t]
@@ -50,7 +49,6 @@ def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
 
 
 
-    # --- Plot ---
     fig, ax = plt.subplots(figsize=(12, 8))
     im = ax.imshow(
         envelope_ds,
