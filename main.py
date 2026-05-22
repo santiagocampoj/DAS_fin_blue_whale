@@ -5,6 +5,7 @@ from rename_csv_h5 import rename_annot_h5
 from fix_bbox_shape import fix_bbox_with_h5_metadata
 from plot_bbox import plot_bbox_overlay
 from build_rgb_image import h5_to_rgb_png
+from crop_range import compute_crop_channels
 import os
 from tqdm import tqdm
 
@@ -89,11 +90,24 @@ def main() -> None:
 
 
 
+                # Step 3.5: calcular el rango de recorte (canales) desde las cajas, una vez
+                try:
+                    logger.info("Computing crop range from bbox")
+                    nx_full = int(df_bbox['nx'].iloc[0])
+                    ch_start, ch_end = compute_crop_channels(df_bbox, nx_full, logger=logger)
+                except Exception as e:
+                    logger.error(f"Error computing crop range: {e}")
+                    continue
+
+
+
                 # Step 4: plot the bboxes overlaid on the H5 envelope (PNG next to CSV)
                 try:
                     logger.info(f"Plotting bbox overlay for {bbox_csv_path}")
                     plot_path = os.path.splitext(bbox_csv_path)[0] + '.png'
-                    plot_bbox_overlay(h5_path, bbox_csv_path, save_path=plot_path, logger=logger)
+                    plot_bbox_overlay(h5_path, bbox_csv_path, save_path=plot_path,
+                                      ch_start=ch_start, ch_end=ch_end, logger=logger)
+                    # plot_bbox_overlay(h5_path, bbox_csv_path, save_path=plot_path, logger=logger)
                 except Exception as e:
                     logger.error(f"Error plotting {bbox_csv_path}: {e}")
                 
@@ -104,7 +118,8 @@ def main() -> None:
                     logger.info(f"Building RGB image for {h5_path}")
                     h5_basename = os.path.splitext(os.path.basename(h5_path))[0]
                     rgb_path = os.path.join(out_dir, h5_basename + '_rgb.png')
-                    h5_to_rgb_png(h5_path, rgb_path, logger=logger)
+                    # h5_to_rgb_png(h5_path, rgb_path, logger=logger)
+                    h5_to_rgb_png(h5_path, rgb_path, ch_start=ch_start, ch_end=ch_end, logger=logger)
                 except Exception as e:
                     logger.error(f"Error building RGB image for {h5_path}: {e}")
 

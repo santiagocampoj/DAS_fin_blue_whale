@@ -9,14 +9,20 @@ from config import COLOR
 
 
 
+# def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None,
+#                       ch_start=None, ch_end=None, logger=None):
 def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
     metadata = dw.data_handle.get_acquisition_parameters(h5_path, interrogator='optasense')
     fs, dx, nx = metadata['fs'], metadata['dx'], int(metadata['nx'])
-    selected_channels = [0, int(nx*dx // dx), 1]
+
+    if ch_start is None: ch_start = 0
+    if ch_end is None: ch_end = nx
+    selected_channels = [ch_start, ch_end, 1]    
+
+    # selected_channels = [0, int(nx*dx // dx), 1]
     tr, time, dist, fileBeginTimeUTC = dw.data_handle.load_das_data(
         h5_path, selected_channels, metadata
     )
-
 
 
     # band-pass + f-k filter

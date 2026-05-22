@@ -29,6 +29,7 @@ def points_to_bbox(csv_path, output_path=None, output_name=None, group_col='call
         [ID, t0, t1, d0, d1, ti0, ti1, di0, di1, nx, nt, downsample, start_datetime_utc, comment]
     """
     df = pd.read_csv(csv_path)
+
     if logger:
         logger.info(f"Loaded {len(df)} rows from {csv_path}")
 

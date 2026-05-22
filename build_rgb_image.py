@@ -5,15 +5,19 @@ import das4whales as dw
 from PIL import Image
 
 
-def h5_to_rgb_png(h5_path, output_png_path, bands=((16, 28), (30, 40), (40, 60)), perc=90, max_size=1024, logger=None):
+def h5_to_rgb_png(h5_path, output_png_path, bands=((16, 28), (30, 40), (40, 60)),
+                  perc=90, max_size=1024, ch_start=None, ch_end=None, logger=None):
     if logger:
         logger.info(f"Loading H5: {h5_path}")
     md = dw.data_handle.get_acquisition_parameters(h5_path, interrogator='optasense')
     fs, dx, nx = md['fs'], md['dx'], int(md['nx'])
-    tr, _, _, _ = dw.data_handle.load_das_data(h5_path, [0, nx, 1], md)
-    if logger:
-        logger.info(f"  tr.shape={tr.shape}, fs={fs} Hz, dx={dx} m")
 
+    if ch_start is None: ch_start = 0
+    if ch_end   is None: ch_end   = nx
+    tr, _, _, _ = dw.data_handle.load_das_data(h5_path, [ch_start, ch_end, 1], md)
+    if logger:
+        logger.info(f"  tr.shape={tr.shape}, fs={fs} Hz, dx={dx} m, canales [{ch_start}, {ch_end})")
+        
     
     
     # 2. Spectral decomposition: one band-pass filter per RGB channel
@@ -37,7 +41,8 @@ def h5_to_rgb_png(h5_path, output_png_path, bands=((16, 28), (30, 40), (40, 60))
             normed.append(np.zeros_like(x, dtype=np.float32))
         else:
             normed.append(np.clip(np.abs(x) / v, 0, 1).astype(np.float32))
-    rgb_float = np.stack(normed, axis=-1)   
+    rgb_float = np.stack(normed, axis=-1)  
+    rgb_float = np.flipud(rgb_float) 
     # shape (nx, ns, 3), values in [0, 1]
 
 
