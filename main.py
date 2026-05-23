@@ -6,8 +6,12 @@ from fix_bbox_shape import fix_bbox_with_h5_metadata
 from plot_bbox import plot_bbox_overlay
 from build_rgb_image import h5_to_rgb_png
 from crop_range import compute_crop_channels
+from yolo_export import draw_boxes_on_rgb
+
+
 import os
 from tqdm import tqdm
+import das4whales as dw
 
 
 
@@ -94,7 +98,9 @@ def main() -> None:
                 try:
                     logger.info("Computing crop range from bbox")
                     nx_full = int(df_bbox['nx'].iloc[0])
-                    ch_start, ch_end = compute_crop_channels(df_bbox, nx_full, logger=logger)
+                    md = dw.data_handle.get_acquisition_parameters(h5_path, interrogator='optasense')
+                    dx = md['dx']
+                    ch_start, ch_end = compute_crop_channels(df_bbox, nx_full, dx, logger=logger)
                 except Exception as e:
                     logger.error(f"Error computing crop range: {e}")
                     continue
@@ -122,6 +128,17 @@ def main() -> None:
                     h5_to_rgb_png(h5_path, rgb_path, ch_start=ch_start, ch_end=ch_end, logger=logger)
                 except Exception as e:
                     logger.error(f"Error building RGB image for {h5_path}: {e}")
+
+
+
+                try:
+                    # Step 6: drawing the bboxes on the RGB image (for YOLO training)
+                    nt = int(df_bbox['nt'].iloc[0])
+                    check_path = os.path.join(out_dir, h5_basename + '_rgb_check.png')
+                    draw_boxes_on_rgb(rgb_path, df_bbox, ch_start, ch_end, nt, check_path, logger=logger)
+                except Exception as e:
+                    logger.error(f"Error drawing boxes on RGB image: {e}")
+
 
 
                 exit()

@@ -9,9 +9,8 @@ from config import COLOR
 
 
 
-# def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None,
-#                       ch_start=None, ch_end=None, logger=None):
-def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
+def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None,
+                      ch_start=None, ch_end=None, show_peak=None, logger=None):
     metadata = dw.data_handle.get_acquisition_parameters(h5_path, interrogator='optasense')
     fs, dx, nx = metadata['fs'], metadata['dx'], int(metadata['nx'])
 
@@ -55,6 +54,8 @@ def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
 
 
 
+
+    # plots
     fig, ax = plt.subplots(figsize=(12, 8))
     im = ax.imshow(
         envelope_ds,
@@ -82,6 +83,15 @@ def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
         ax.add_patch(rect)
         ax.text(t0, d1, str(label), color=color, fontsize=7, va='bottom')
 
+        if show_peak:
+            _, d_peak = call_distance(envelope, dist, ch_start, row)
+            # ax.hlines(d_centroid / 1e3, t0, t1, color=color, lw=1.0, ls='--') # centroide
+            ax.hlines(d_peak     / 1e3, t0, t1, color=color, lw=1.0, ls=':') # pico
+            if logger:
+                # logger.info(f"  {label}: centroid={d_centroid/1e3:.1f} km, peak={d_peak/1e3:.1f} km")
+                logger.info(f"  {label}: peak={d_peak/1e3:.1f} km")
+
+
 
     # actual plotting
     plt.tight_layout()
@@ -92,3 +102,28 @@ def plot_bbox_overlay(h5_path, bbox_csv_path, save_path=None, logger=None):
             logger.info(f"Saved figure: {save_path}")
     else:
         plt.show()
+
+    logger.info("Finished plotting bbox overlay.")
+    exit()
+
+
+
+def call_distance(envelope, dist, ch_start, row):
+    n = envelope.shape[0]
+    # channel; envelope row
+    r0 = max(0, int(row['di0']) - ch_start)
+    r1 = min(n, int(row['di1']) - ch_start)
+    c0, c1 = int(row['ti0']), int(row['ti1'])
+
+
+    # sum in time, energy per channel
+    profile = envelope[r0:r1, c0:c1].sum(axis=1)
+    d = dist[r0:r1]
+    if profile.sum() == 0:
+        return float(d.mean()), float(d.mean())
+
+
+    # center or peak
+    centroid = float(np.sum(d * profile) / profile.sum())
+    peak = float(d[int(np.argmax(profile))])
+    return centroid, peak
