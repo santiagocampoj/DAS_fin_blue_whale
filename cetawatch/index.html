@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CetaWatch — OOI RCA South Cable</title>
+
+  <!-- Leaflet (CDN fiable: jsdelivr) -->
+  <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
+  />
+  <script
+    defer
+    src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"
+  ></script>
+
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Nuestro codigo, separado por modulos -->
+  <script defer src="js/map.js"></script>
+</head>
+<body>
+  <div class="header">
+    <h1>CetaWatch</h1>
+    <p>OOI Regional Cabled Array — South Cable, offshore Oregon. Distributed Acoustic Sensing.</p>
+  </div>
+
+  <div class="legend">
+    <div class="legend-section">Cables</div>
+    <div class="legend-row"><span class="line line-north"></span><span>North</span></div>
+    <div class="legend-row"><span class="line line-south"></span><span>South</span></div>
+    <div class="legend-section">Detecciones</div>
+    <div class="legend-row"><span class="dot dot-hf"></span><span>HF</span></div>
+    <div class="legend-row"><span class="dot dot-lf"></span><span>LF</span></div>
+  </div>
+
+  <div id="map"></div>
+</body>
+</html>
